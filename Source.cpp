@@ -80,7 +80,6 @@ bool screenCapturePart(int x, int y, int w, int h, LPCSTR fname1, LPCSTR fname2)
         HBITMAP hBitmapOld1 = (HBITMAP)SelectObject(hdcMemory, hBitmap1);
 
         BitBlt(hdcMemory, 0, 0, w, h, hdcSource, x, y, SRCCOPY);
-        hBitmap1 = (HBITMAP)SelectObject(hdcMemory, hBitmapOld1);
 
         for (int w = 0; w < WIDTH; ++w)
             for (int h = 0; h < HEIGHT; ++h)
@@ -88,6 +87,8 @@ bool screenCapturePart(int x, int y, int w, int h, LPCSTR fname1, LPCSTR fname2)
                 arr1[w][h] = GetPixel(hdcMemory, w, h);
                 //myfile << w << " " << h << " " << arr1[w][h] << "\n";
             }
+
+        hBitmap1 = (HBITMAP)SelectObject(hdcMemory, hBitmapOld1);
 
         DeleteDC(hdcSource);
         DeleteDC(hdcMemory);
