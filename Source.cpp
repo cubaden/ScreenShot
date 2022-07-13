@@ -15,6 +15,7 @@ void sleep(unsigned milliseconds)
 #endif
 
 #include <iostream>
+#include <fstream>
 #include <vector>
 #include <array>
 #include <atlbase.h>
@@ -34,6 +35,7 @@ int maxDIM = 2000;
 COLORREF arr1[2000][2000];
 COLORREF arr2[2000][2000];
 
+COLORREF cGREEN = 0x00ff00;
 
 // Get the horizontal and vertical screen sizes in pixel
 void GetDesktopResolution(int& horizontal, int& vertical)
@@ -53,76 +55,103 @@ void GetDesktopResolution(int& horizontal, int& vertical)
 bool saveBitmap(LPCSTR filename, HBITMAP bmp, HPALETTE pal);
 
 bool screenCapturePart(int x, int y, int w, int h, LPCSTR fname1, LPCSTR fname2) {
-    HDC hdcSource = GetDC(NULL);
-    HDC hdcMemory = CreateCompatibleDC(hdcSource);
 
-    int capX = GetDeviceCaps(hdcSource, HORZRES);
-    int capY = GetDeviceCaps(hdcSource, VERTRES);
+    /* debug need
+    ofstream myfile, myfile2;
+    myfile.open("temp.txt");
+    myfile2.open("temp2.txt");
 
-    HBITMAP hBitmap1 = CreateCompatibleBitmap(hdcSource, w, h);
-    HBITMAP hBitmapOld1 = (HBITMAP)SelectObject(hdcMemory, hBitmap1);
+    myfile << "Writing this to a file 1.\n";
+    myfile2 << "Writing this to a file 2.\n";
+    */
 
-    BitBlt(hdcMemory, 0, 0, w, h, hdcSource, x, y, SRCCOPY);
-    hBitmap1 = (HBITMAP)SelectObject(hdcMemory, hBitmapOld1);
+    HBITMAP hBitmap1 = NULL;
+    HBITMAP hBitmap2 = NULL;
+    HBITMAP hBitmap3 = NULL;
 
-    for (int w = 0; w < WIDTH; ++w)
-        for (int h = 0; h < HEIGHT; ++h)
-        {
-            arr1[w][h] = GetPixel(hdcMemory, w, h);
-        }
+    {
+        HDC hdcSource = GetDC(NULL);
+        HDC hdcMemory = CreateCompatibleDC(hdcSource);
 
-    DeleteDC(hdcSource);
-    DeleteDC(hdcMemory);
+        int capX = GetDeviceCaps(hdcSource, HORZRES);
+        int capY = GetDeviceCaps(hdcSource, VERTRES);
+
+        hBitmap1 = CreateCompatibleBitmap(hdcSource, w, h);
+        HBITMAP hBitmapOld1 = (HBITMAP)SelectObject(hdcMemory, hBitmap1);
+
+        BitBlt(hdcMemory, 0, 0, w, h, hdcSource, x, y, SRCCOPY);
+        hBitmap1 = (HBITMAP)SelectObject(hdcMemory, hBitmapOld1);
+
+        for (int w = 0; w < WIDTH; ++w)
+            for (int h = 0; h < HEIGHT; ++h)
+            {
+                arr1[w][h] = GetPixel(hdcMemory, w, h);
+                //myfile << w << " " << h << " " << arr1[w][h] << "\n";
+            }
+
+        DeleteDC(hdcSource);
+        DeleteDC(hdcMemory);
+    }
 
     sleep(1000);
 
-    hdcSource = GetDC(NULL);
-    hdcMemory = CreateCompatibleDC(hdcSource);
+    {
+        HDC hdcSource = GetDC(NULL);
+        HDC hdcMemory = CreateCompatibleDC(hdcSource);
 
-    capX = GetDeviceCaps(hdcSource, HORZRES);
-    capY = GetDeviceCaps(hdcSource, VERTRES);
+        int capX = GetDeviceCaps(hdcSource, HORZRES);
+        int capY = GetDeviceCaps(hdcSource, VERTRES);
 
-    HBITMAP hBitmap2 = CreateCompatibleBitmap(hdcSource, w, h);
-    HBITMAP hBitmapOld2 = (HBITMAP)SelectObject(hdcMemory, hBitmap2);
+        hBitmap2 = CreateCompatibleBitmap(hdcSource, w, h);
+        HBITMAP hBitmapOld2 = (HBITMAP)SelectObject(hdcMemory, hBitmap2);
 
-    BitBlt(hdcMemory, 0, 0, w, h, hdcSource, x, y, SRCCOPY);
-    hBitmap2 = (HBITMAP)SelectObject(hdcMemory, hBitmapOld2);
+        BitBlt(hdcMemory, 0, 0, w, h, hdcSource, x, y, SRCCOPY);
 
-    for (int w = 0; w < WIDTH; ++w)
-        for (int h = 0; h < HEIGHT; ++h)
-        {
-            arr2[w][h] = GetPixel(hdcMemory, w, h);
-        }
-
-    DeleteDC(hdcSource);
-    DeleteDC(hdcMemory);
-
-
-    hdcSource = GetDC(NULL);
-    hdcMemory = CreateCompatibleDC(hdcSource);
-
-    capX = GetDeviceCaps(hdcSource, HORZRES);
-    capY = GetDeviceCaps(hdcSource, VERTRES);
-
-    HBITMAP hBitmapOld = (HBITMAP) SelectObject(hdcMemory, hBitmap2);
-
-    COLORREF cGREEN = 0x00ff00;
-
-    for (int w = 0; w < WIDTH; ++w)
-        for (int h = 0; h < HEIGHT; ++h)
-        {
-            if (arr1[w][h] != arr2[w][h])
+        for (int w = 0; w < WIDTH; ++w)
+            for (int h = 0; h < HEIGHT; ++h)
             {
-                SetPixel(hdcMemory, w, h, cGREEN);
+                arr2[w][h] = GetPixel(hdcMemory, w, h);
+                //myfile2 << w << " " << h << " " << arr2[w][h] << "\n";
             }
-        }
-    
-    //SelectObject(hdcMemory, hBitmapOld);
 
-    DeleteDC(hdcSource);
-    DeleteDC(hdcMemory);
+        hBitmap2 = (HBITMAP)SelectObject(hdcMemory, hBitmapOld2);
 
-    if (saveBitmap(fname1, hBitmap1, NULL) && saveBitmap(fname2, hBitmap2, NULL))
+        DeleteDC(hdcSource);
+        DeleteDC(hdcMemory);
+    }
+
+
+    //myfile.close();
+    //myfile2.close();
+
+    {
+        HDC hdcSource = GetDC(NULL);
+        HDC hdcMemory = CreateCompatibleDC(hdcSource);
+
+        int capX = GetDeviceCaps(hdcSource, HORZRES);
+        int capY = GetDeviceCaps(hdcSource, VERTRES);
+
+        hBitmap3 = CreateCompatibleBitmap(hdcSource, w, h);
+        HBITMAP hBitmapOld3 = (HBITMAP)SelectObject(hdcMemory, hBitmap3);
+
+        BitBlt(hdcMemory, 0, 0, w, h, hdcSource, x, y, SRCCOPY);
+
+        for (int w = 0; w < WIDTH; ++w)
+            for (int h = 0; h < HEIGHT; ++h)
+            {
+                if (arr1[w][h] != arr2[w][h])
+                    SetPixel(hdcMemory, w, h, cGREEN);
+            }
+
+        hBitmap3 = (HBITMAP)SelectObject(hdcMemory, hBitmapOld3);
+
+        DeleteDC(hdcSource);
+        DeleteDC(hdcMemory);
+
+    }
+
+    if (saveBitmap(fname1, hBitmap1, NULL) && saveBitmap(fname2, hBitmap2, NULL)
+        && saveBitmap("temp3.bmp", hBitmap3, NULL))
         return true;
 
     return false;
