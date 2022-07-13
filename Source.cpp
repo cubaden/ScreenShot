@@ -1,12 +1,39 @@
-#include "Windows.h"
+#ifdef _WIN32
+#include <windows.h>
+
+void sleep(unsigned milliseconds)
+{
+    Sleep(milliseconds);
+}
+#else
+#include <unistd.h>
+
+void sleep(unsigned milliseconds)
+{
+    usleep(milliseconds * 1000); // takes microseconds
+}
+#endif
+
 #include <iostream>
 #include <vector>
+#include <array>
 #include <atlbase.h>
 #include <ole2.h>
 #include <olectl.h>
 #include "wtypes.h"
 
+#define COLORREF2RGB(Color) (Color & 0xff00) | ((Color >> 16) & 0xff) \
+                                 | ((Color << 16) & 0xff0000)
+
 using namespace std;
+
+int WIDTH = 0;
+int HEIGHT = 0;
+int maxDIM = 2000;
+
+COLORREF arr1[2000][2000];
+COLORREF arr2[2000][2000];
+
 
 // Get the horizontal and vertical screen sizes in pixel
 void GetDesktopResolution(int& horizontal, int& vertical)
@@ -38,6 +65,17 @@ bool screenCapturePart(int x, int y, int w, int h, LPCSTR fname1, LPCSTR fname2)
     BitBlt(hdcMemory, 0, 0, w, h, hdcSource, x, y, SRCCOPY);
     hBitmap1 = (HBITMAP)SelectObject(hdcMemory, hBitmapOld1);
 
+    for (int w = 0; w < WIDTH; ++w)
+        for (int h = 0; h < HEIGHT; ++h)
+        {
+            arr1[w][h] = GetPixel(hdcMemory, w, h);
+        }
+
+    DeleteDC(hdcSource);
+    DeleteDC(hdcMemory);
+
+    sleep(1000);
+
     hdcSource = GetDC(NULL);
     hdcMemory = CreateCompatibleDC(hdcSource);
 
@@ -50,12 +88,43 @@ bool screenCapturePart(int x, int y, int w, int h, LPCSTR fname1, LPCSTR fname2)
     BitBlt(hdcMemory, 0, 0, w, h, hdcSource, x, y, SRCCOPY);
     hBitmap2 = (HBITMAP)SelectObject(hdcMemory, hBitmapOld2);
 
+    for (int w = 0; w < WIDTH; ++w)
+        for (int h = 0; h < HEIGHT; ++h)
+        {
+            arr2[w][h] = GetPixel(hdcMemory, w, h);
+        }
+
     DeleteDC(hdcSource);
     DeleteDC(hdcMemory);
 
-    HPALETTE hpal = NULL;
 
-    if (saveBitmap(fname1, hBitmap1, hpal) && saveBitmap(fname2, hBitmap2, hpal))
+    hdcSource = GetDC(NULL);
+    hdcMemory = CreateCompatibleDC(hdcSource);
+
+    capX = GetDeviceCaps(hdcSource, HORZRES);
+    capY = GetDeviceCaps(hdcSource, VERTRES);
+
+    HBITMAP hBitmapOld = (HBITMAP) SelectObject(hdcMemory, hBitmap2);
+
+    COLORREF cGREEN = 0x00ff00;
+
+    for (int w = 0; w < WIDTH; ++w)
+        for (int h = 0; h < HEIGHT; ++h)
+        {
+            SetPixel(hdcMemory, w, h, cGREEN);
+
+            if (arr1[w][h] != arr2[w][h])
+            {
+                SetPixel(hdcMemory, w, h, cGREEN);
+            }
+        }
+    
+    //SelectObject(hdcMemory, hBitmapOld);
+
+    DeleteDC(hdcSource);
+    DeleteDC(hdcMemory);
+
+    if (saveBitmap(fname1, hBitmap1, NULL) && saveBitmap(fname2, hBitmap2, NULL))
         return true;
 
     return false;
@@ -124,9 +193,12 @@ bool saveBitmap(LPCSTR filename, HBITMAP bmp, HPALETTE pal)
 int main(int argc, char* argv[]) {
     USES_CONVERSION;
     int width = 0, height = 0;
-
     GetDesktopResolution(width, height);
-    screenCapturePart(0, 0, width, height, "temp.bmp", "temp2.bmp");
+
+    WIDTH = width;
+    HEIGHT = height;
+
+    screenCapturePart(0, 0, WIDTH, HEIGHT, "temp.bmp", "temp2.bmp");
 
     return 0;
 
