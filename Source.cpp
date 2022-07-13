@@ -111,8 +111,6 @@ bool screenCapturePart(int x, int y, int w, int h, LPCSTR fname1, LPCSTR fname2)
     for (int w = 0; w < WIDTH; ++w)
         for (int h = 0; h < HEIGHT; ++h)
         {
-            SetPixel(hdcMemory, w, h, cGREEN);
-
             if (arr1[w][h] != arr2[w][h])
             {
                 SetPixel(hdcMemory, w, h, cGREEN);
