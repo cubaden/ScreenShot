@@ -55,19 +55,9 @@ void GetDesktopResolution(int& horizontal, int& vertical)
 bool saveBitmap(LPCSTR filename, HBITMAP bmp, HPALETTE pal);
 
 bool screenCapturePart(int x, int y, int w, int h, LPCSTR fname1, LPCSTR fname2) {
-
-    /* debug need
-    ofstream myfile, myfile2;
-    myfile.open("temp.txt");
-    myfile2.open("temp2.txt");
-
-    myfile << "Writing this to a file 1.\n";
-    myfile2 << "Writing this to a file 2.\n";
-    */
-
     HBITMAP hBitmap1 = NULL;
     HBITMAP hBitmap2 = NULL;
-    HBITMAP hBitmap3 = NULL;
+    HBITMAP hBitmapRes = NULL;
 
     {
         HDC hdcSource = GetDC(NULL);
@@ -112,7 +102,6 @@ bool screenCapturePart(int x, int y, int w, int h, LPCSTR fname1, LPCSTR fname2)
             for (int h = 0; h < HEIGHT; ++h)
             {
                 arr2[w][h] = GetPixel(hdcMemory, w, h);
-                //myfile2 << w << " " << h << " " << arr2[w][h] << "\n";
             }
 
         hBitmap2 = (HBITMAP)SelectObject(hdcMemory, hBitmapOld2);
@@ -121,10 +110,6 @@ bool screenCapturePart(int x, int y, int w, int h, LPCSTR fname1, LPCSTR fname2)
         DeleteDC(hdcMemory);
     }
 
-
-    //myfile.close();
-    //myfile2.close();
-
     {
         HDC hdcSource = GetDC(NULL);
         HDC hdcMemory = CreateCompatibleDC(hdcSource);
@@ -132,8 +117,8 @@ bool screenCapturePart(int x, int y, int w, int h, LPCSTR fname1, LPCSTR fname2)
         int capX = GetDeviceCaps(hdcSource, HORZRES);
         int capY = GetDeviceCaps(hdcSource, VERTRES);
 
-        hBitmap3 = CreateCompatibleBitmap(hdcSource, w, h);
-        HBITMAP hBitmapOld3 = (HBITMAP)SelectObject(hdcMemory, hBitmap3);
+        hBitmapRes = CreateCompatibleBitmap(hdcSource, w, h);
+        HBITMAP hBitmapOld3 = (HBITMAP)SelectObject(hdcMemory, hBitmapRes);
 
         BitBlt(hdcMemory, 0, 0, w, h, hdcSource, x, y, SRCCOPY);
 
@@ -144,15 +129,16 @@ bool screenCapturePart(int x, int y, int w, int h, LPCSTR fname1, LPCSTR fname2)
                     SetPixel(hdcMemory, w, h, cGREEN);
             }
 
-        hBitmap3 = (HBITMAP)SelectObject(hdcMemory, hBitmapOld3);
+        hBitmapRes = (HBITMAP)SelectObject(hdcMemory, hBitmapOld3);
 
         DeleteDC(hdcSource);
         DeleteDC(hdcMemory);
 
     }
 
-    if (saveBitmap(fname1, hBitmap1, NULL) && saveBitmap(fname2, hBitmap2, NULL)
-        && saveBitmap("result.bmp", hBitmap3, NULL))
+    if (saveBitmap(fname1, hBitmap1, NULL) 
+        && saveBitmap(fname2, hBitmap2, NULL)
+        && saveBitmap("result.bmp", hBitmapRes, NULL))
         return true;
 
     return false;
