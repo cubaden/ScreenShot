@@ -152,7 +152,7 @@ bool screenCapturePart(int x, int y, int w, int h, LPCSTR fname1, LPCSTR fname2)
     }
 
     if (saveBitmap(fname1, hBitmap1, NULL) && saveBitmap(fname2, hBitmap2, NULL)
-        && saveBitmap("temp3.bmp", hBitmap3, NULL))
+        && saveBitmap("result.bmp", hBitmap3, NULL))
         return true;
 
     return false;
@@ -226,7 +226,7 @@ int main(int argc, char* argv[]) {
     WIDTH = width;
     HEIGHT = height;
 
-    screenCapturePart(0, 0, WIDTH, HEIGHT, "temp.bmp", "temp2.bmp");
+    screenCapturePart(0, 0, WIDTH, HEIGHT, "first.bmp", "second.bmp");
 
     return 0;
 
