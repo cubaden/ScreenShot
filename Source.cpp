@@ -25,25 +25,37 @@ void GetDesktopResolution(int& horizontal, int& vertical)
 
 bool saveBitmap(LPCSTR filename, HBITMAP bmp, HPALETTE pal);
 
-bool screenCapturePart(int x, int y, int w, int h, LPCSTR fname) {
+bool screenCapturePart(int x, int y, int w, int h, LPCSTR fname1, LPCSTR fname2) {
     HDC hdcSource = GetDC(NULL);
     HDC hdcMemory = CreateCompatibleDC(hdcSource);
 
     int capX = GetDeviceCaps(hdcSource, HORZRES);
     int capY = GetDeviceCaps(hdcSource, VERTRES);
 
-    HBITMAP hBitmap = CreateCompatibleBitmap(hdcSource, w, h);
-    HBITMAP hBitmapOld = (HBITMAP)SelectObject(hdcMemory, hBitmap);
+    HBITMAP hBitmap1 = CreateCompatibleBitmap(hdcSource, w, h);
+    HBITMAP hBitmapOld1 = (HBITMAP)SelectObject(hdcMemory, hBitmap1);
 
     BitBlt(hdcMemory, 0, 0, w, h, hdcSource, x, y, SRCCOPY);
-    hBitmap = (HBITMAP)SelectObject(hdcMemory, hBitmapOld);
+    hBitmap1 = (HBITMAP)SelectObject(hdcMemory, hBitmapOld1);
+
+    hdcSource = GetDC(NULL);
+    hdcMemory = CreateCompatibleDC(hdcSource);
+
+    capX = GetDeviceCaps(hdcSource, HORZRES);
+    capY = GetDeviceCaps(hdcSource, VERTRES);
+
+    HBITMAP hBitmap2 = CreateCompatibleBitmap(hdcSource, w, h);
+    HBITMAP hBitmapOld2 = (HBITMAP)SelectObject(hdcMemory, hBitmap2);
+
+    BitBlt(hdcMemory, 0, 0, w, h, hdcSource, x, y, SRCCOPY);
+    hBitmap2 = (HBITMAP)SelectObject(hdcMemory, hBitmapOld2);
 
     DeleteDC(hdcSource);
     DeleteDC(hdcMemory);
 
     HPALETTE hpal = NULL;
 
-    if (saveBitmap(fname, hBitmap, hpal))
+    if (saveBitmap(fname1, hBitmap1, hpal) && saveBitmap(fname2, hBitmap2, hpal))
         return true;
 
     return false;
@@ -114,7 +126,7 @@ int main(int argc, char* argv[]) {
     int width = 0, height = 0;
 
     GetDesktopResolution(width, height);
-    screenCapturePart(0, 0, width, height, "temp.bmp");
+    screenCapturePart(0, 0, width, height, "temp.bmp", "temp2.bmp");
 
     return 0;
 
