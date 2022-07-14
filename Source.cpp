@@ -198,7 +198,5 @@ int main(int argc, char* argv[])
     arrFirstBmpColors.resize(WIDTH, vector<COLORREF>(HEIGHT));
     arrSecondBmpColors.resize(WIDTH, vector<COLORREF>(HEIGHT));
 
-    screenCaptureComparingSaving(0, 0, WIDTH, HEIGHT, name1.c_str(), name2.c_str(), nameResult.c_str());
-
-    return 0;
+    return screenCaptureComparingSaving(0, 0, WIDTH, HEIGHT, name1.c_str(), name2.c_str(), nameResult.c_str());
 }
