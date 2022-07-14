@@ -11,9 +11,18 @@
 * Pixels that are NOT the same - make them green, and write the new bmp.
 * 
 * 
+* Output:
+* 
+* Outputting to a current directory
+* 
+* First screenshot - ("firstScreenShot.bmp")
+* Second screenshot - ("secondScreenShot.bmp")
+* Result screenshot - ("resultScreenShot.bmp") - Green pixels as a difference between First and Second screenshots
+* 
 */
 #include <windows.h>
 #include <vector>
+#include <string>
 #include <functional>
 #include <atlbase.h>
 #include <ole2.h>
@@ -22,11 +31,12 @@
 
 using namespace std;
 
+const std::string name1("firstScreenShot.bmp");
+const std::string name2("secondScreenShot.bmp");
+const std::string nameResult("resultScreenShot.bmp");
+
 int WIDTH = 0;
 int HEIGHT = 0;
-
-vector<vector<COLORREF>> arrFirstBmpColors;
-vector<vector<COLORREF>> arrSecondBmpColors;
 
 COLORREF GREEN_COLORREF = 0x00ff00;
 
@@ -73,6 +83,9 @@ HBITMAP getHBitmapScreenCapture(int x, int y, int w, int h, function<bool(int, i
     return hBitmap;
 }
 
+vector<vector<COLORREF>> arrFirstBmpColors;
+vector<vector<COLORREF>> arrSecondBmpColors;
+
 // saving colors for first screenshot
 bool functor1(int w, int h, COLORREF c)
 { 
@@ -109,6 +122,7 @@ bool screenCapturePart(int x, int y, int w, int h, LPCSTR fname1, LPCSTR fname2,
     return false;
 }
 
+// save HBITMAP to a file in the current directory
 bool saveBitmap(LPCSTR filename, HBITMAP bmp, HPALETTE pal)
 {
     USES_CONVERSION;
@@ -182,7 +196,7 @@ int main(int argc, char* argv[])
     arrFirstBmpColors.resize(WIDTH, vector<COLORREF>(HEIGHT));
     arrSecondBmpColors.resize(WIDTH, vector<COLORREF>(HEIGHT));
 
-    screenCapturePart(0, 0, WIDTH, HEIGHT, "firstScreenShot.bmp", "secondScreenShot.bmp", "resultScreenShot.bmp");
+    screenCapturePart(0, 0, WIDTH, HEIGHT, name1.c_str(), name2.c_str(), nameResult.c_str());
 
     return 0;
 }
