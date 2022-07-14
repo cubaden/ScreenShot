@@ -59,6 +59,36 @@ void GetDesktopResolution(int& horizontal, int& vertical)
     vertical = desktop.bottom;
 }
 
+// Save bitmap to a file
+bool saveBitmap(LPCSTR filename, HBITMAP bmp, HPALETTE pal);
+
+// get bitmap of screen capture
+HBITMAP getHBitmapScreenCapture(int x, int y, int w, int h, function<bool(int, int, COLORREF)> f, bool make_green = false)
+{
+    HDC hdcSource = GetDC(NULL);
+    HDC hdcMemory = CreateCompatibleDC(hdcSource);
+
+    int capX = GetDeviceCaps(hdcSource, HORZRES);
+    int capY = GetDeviceCaps(hdcSource, VERTRES);
+
+    HBITMAP hBitmap = CreateCompatibleBitmap(hdcSource, w, h);
+    HBITMAP hBitmapOld = (HBITMAP) SelectObject(hdcMemory, hBitmap);
+
+    BitBlt(hdcMemory, 0, 0, w, h, hdcSource, x, y, SRCCOPY);
+
+    for (int w = 0; w < WIDTH; ++w)
+        for (int h = 0; h < HEIGHT; ++h)
+            if (f(w, h, GetPixel(hdcMemory, w, h)) && make_green)
+                SetPixel(hdcMemory, w, h, GREEN_COLORREF);
+
+    hBitmap = (HBITMAP) SelectObject(hdcMemory, hBitmapOld);
+
+    DeleteDC(hdcSource);
+    DeleteDC(hdcMemory);
+
+    return hBitmap;
+}
+
 vector<vector<COLORREF>> arrFirstBmpColors;
 vector<vector<COLORREF>> arrSecondBmpColors;
 
@@ -96,48 +126,6 @@ bool screenCaptureComparingSaving(int x, int y, int w, int h, LPCSTR fname1, LPC
         return true;
 
     return false;
-}
-
-int main(int argc, char* argv[]) 
-{
-    USES_CONVERSION;
-
-    GetDesktopResolution(WIDTH, HEIGHT);
-
-    arrFirstBmpColors.resize(WIDTH, vector<COLORREF>(HEIGHT));
-    arrSecondBmpColors.resize(WIDTH, vector<COLORREF>(HEIGHT));
-
-    return screenCaptureComparingSaving(0, 0, WIDTH, HEIGHT, name1.c_str(), name2.c_str(), nameResult.c_str());
-}
-
-// Save bitmap to a file
-bool saveBitmap(LPCSTR filename, HBITMAP bmp, HPALETTE pal);
-
-// get bitmap of screen capture
-HBITMAP getHBitmapScreenCapture(int x, int y, int w, int h, function<bool(int, int, COLORREF)> f, bool make_green = false)
-{
-    HDC hdcSource = GetDC(NULL);
-    HDC hdcMemory = CreateCompatibleDC(hdcSource);
-
-    int capX = GetDeviceCaps(hdcSource, HORZRES);
-    int capY = GetDeviceCaps(hdcSource, VERTRES);
-
-    HBITMAP hBitmap = CreateCompatibleBitmap(hdcSource, w, h);
-    HBITMAP hBitmapOld = (HBITMAP)SelectObject(hdcMemory, hBitmap);
-
-    BitBlt(hdcMemory, 0, 0, w, h, hdcSource, x, y, SRCCOPY);
-
-    for (int w = 0; w < WIDTH; ++w)
-        for (int h = 0; h < HEIGHT; ++h)
-            if (f(w, h, GetPixel(hdcMemory, w, h)) && make_green)
-                SetPixel(hdcMemory, w, h, GREEN_COLORREF);
-
-    hBitmap = (HBITMAP)SelectObject(hdcMemory, hBitmapOld);
-
-    DeleteDC(hdcSource);
-    DeleteDC(hdcMemory);
-
-    return hBitmap;
 }
 
 // save HBITMAP to a file in the current directory
@@ -199,4 +187,16 @@ bool saveBitmap(LPCSTR filename, HBITMAP bmp, HPALETTE pal)
     picture->Release();
 
     return result;
+}
+
+int main(int argc, char* argv[]) 
+{
+    USES_CONVERSION;
+
+    GetDesktopResolution(WIDTH, HEIGHT);
+
+    arrFirstBmpColors.resize(WIDTH, vector<COLORREF>(HEIGHT));
+    arrSecondBmpColors.resize(WIDTH, vector<COLORREF>(HEIGHT));
+
+    return screenCaptureComparingSaving(0, 0, WIDTH, HEIGHT, name1.c_str(), name2.c_str(), nameResult.c_str());
 }
