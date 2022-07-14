@@ -108,7 +108,7 @@ bool functorMakePixelGreen(int w, int h, COLORREF c)
 };
 
 // capturing rect (x,y,w,h) and writing first, second and result bmp
-bool screenCapture(int x, int y, int w, int h, LPCSTR fname1, LPCSTR fname2, LPCSTR fnameResult) 
+bool screenCaptureComparingSaving(int x, int y, int w, int h, LPCSTR fname1, LPCSTR fname2, LPCSTR fnameResult) 
 {
     HBITMAP hBitmap1 = getHBitmapScreenCapture(x, y, w, h, functor1);
     Sleep(1000);
@@ -193,7 +193,7 @@ int main(int argc, char* argv[])
     arrFirstBmpColors.resize(WIDTH, vector<COLORREF>(HEIGHT));
     arrSecondBmpColors.resize(WIDTH, vector<COLORREF>(HEIGHT));
 
-    screenCapture(0, 0, WIDTH, HEIGHT, name1.c_str(), name2.c_str(), nameResult.c_str());
+    screenCaptureComparingSaving(0, 0, WIDTH, HEIGHT, name1.c_str(), name2.c_str(), nameResult.c_str());
 
     return 0;
 }
