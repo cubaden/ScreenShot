@@ -20,9 +20,6 @@
 #include <olectl.h>
 #include "wtypes.h"
 
-#define COLORREF2RGB(Color) (Color & 0xff00) | ((Color >> 16) & 0xff) \
-                                 | ((Color << 16) & 0xff0000)
-
 using namespace std;
 
 int WIDTH = 0;
@@ -49,7 +46,8 @@ void GetDesktopResolution(int& horizontal, int& vertical)
 // Save bitmap to a file
 bool saveBitmap(LPCSTR filename, HBITMAP bmp, HPALETTE pal);
 
-HBITMAP getScreenCapture(int x, int y, int w, int h, std::function<bool(int, int, COLORREF)> f, bool make_green = false)
+// get bitmap of screen capture
+HBITMAP getHBitmapScreenCapture(int x, int y, int w, int h, function<bool(int, int, COLORREF)> f, bool make_green = false)
 {
     HDC hdcSource = GetDC(NULL);
     HDC hdcMemory = CreateCompatibleDC(hdcSource);
@@ -98,10 +96,10 @@ bool functorMakePixelGreen(int w, int h, COLORREF c)
 // capturing rect (x,y,w,h) and writing first, second and result bmp
 bool screenCapturePart(int x, int y, int w, int h, LPCSTR fname1, LPCSTR fname2, LPCSTR fnameResult) 
 {
-    HBITMAP hBitmap1 = getScreenCapture(x, y, w, h, functor1);
+    HBITMAP hBitmap1 = getHBitmapScreenCapture(x, y, w, h, functor1);
     Sleep(1000);
-    HBITMAP hBitmap2 = getScreenCapture(x, y, w, h, functor2);
-    HBITMAP hBitmapRes = getScreenCapture(x, y, w, h, functorMakePixelGreen, true);
+    HBITMAP hBitmap2 = getHBitmapScreenCapture(x, y, w, h, functor2);
+    HBITMAP hBitmapRes = getHBitmapScreenCapture(x, y, w, h, functorMakePixelGreen, true);
 
     if (saveBitmap(fname1, hBitmap1, NULL) 
         && saveBitmap(fname2, hBitmap2, NULL)
