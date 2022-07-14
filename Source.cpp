@@ -18,6 +18,7 @@ void sleep(unsigned milliseconds)
 #include <fstream>
 #include <vector>
 #include <array>
+#include <functional>
 #include <atlbase.h>
 #include <ole2.h>
 #include <olectl.h>
@@ -30,7 +31,6 @@ using namespace std;
 
 int WIDTH = 0;
 int HEIGHT = 0;
-int maxDIM = 2000;
 
 COLORREF arr1[2000][2000];
 COLORREF arr2[2000][2000];
@@ -54,87 +54,59 @@ void GetDesktopResolution(int& horizontal, int& vertical)
 
 bool saveBitmap(LPCSTR filename, HBITMAP bmp, HPALETTE pal);
 
+HBITMAP getScreenCapture(int x, int y, int w, int h, std::function<bool(int, int, COLORREF)> f, bool make_green = false)
+{
+    HDC hdcSource = GetDC(NULL);
+    HDC hdcMemory = CreateCompatibleDC(hdcSource);
+
+    int capX = GetDeviceCaps(hdcSource, HORZRES);
+    int capY = GetDeviceCaps(hdcSource, VERTRES);
+
+    HBITMAP hBitmap = CreateCompatibleBitmap(hdcSource, w, h);
+    HBITMAP hBitmapOld = (HBITMAP)SelectObject(hdcMemory, hBitmap);
+
+    BitBlt(hdcMemory, 0, 0, w, h, hdcSource, x, y, SRCCOPY);
+
+    for (int w = 0; w < WIDTH; ++w)
+        for (int h = 0; h < HEIGHT; ++h)
+        {
+            if (f(w, h, GetPixel(hdcMemory, w, h)) && make_green)
+                SetPixel(hdcMemory, w, h, cGREEN);
+        }
+
+    hBitmap = (HBITMAP) SelectObject(hdcMemory, hBitmapOld);
+
+    DeleteDC(hdcSource);
+    DeleteDC(hdcMemory);
+
+    return hBitmap;
+}
+
+bool functor1(int w, int h, COLORREF c)
+{ 
+    arr1[w][h] = c;
+    return false;
+};
+
+bool functor2(int w, int h, COLORREF c)
+{
+    arr2[w][h] = c;
+    return false;
+};
+
+bool functorMakePixelGreen(int w, int h, COLORREF c)
+{
+    return (arr1[w][h] != arr2[w][h]);        
+};
+
 bool screenCapturePart(int x, int y, int w, int h, LPCSTR fname1, LPCSTR fname2) {
-    HBITMAP hBitmap1 = NULL;
-    HBITMAP hBitmap2 = NULL;
-    HBITMAP hBitmapRes = NULL;
 
-    {
-        HDC hdcSource = GetDC(NULL);
-        HDC hdcMemory = CreateCompatibleDC(hdcSource);
+    using namespace std::placeholders;
 
-        int capX = GetDeviceCaps(hdcSource, HORZRES);
-        int capY = GetDeviceCaps(hdcSource, VERTRES);
-
-        hBitmap1 = CreateCompatibleBitmap(hdcSource, w, h);
-        HBITMAP hBitmapOld1 = (HBITMAP)SelectObject(hdcMemory, hBitmap1);
-
-        BitBlt(hdcMemory, 0, 0, w, h, hdcSource, x, y, SRCCOPY);
-
-        for (int w = 0; w < WIDTH; ++w)
-            for (int h = 0; h < HEIGHT; ++h)
-            {
-                arr1[w][h] = GetPixel(hdcMemory, w, h);
-                //myfile << w << " " << h << " " << arr1[w][h] << "\n";
-            }
-
-        hBitmap1 = (HBITMAP)SelectObject(hdcMemory, hBitmapOld1);
-
-        DeleteDC(hdcSource);
-        DeleteDC(hdcMemory);
-    }
-
+    HBITMAP hBitmap1 = getScreenCapture(x, y, w, h, functor1);
     sleep(1000);
-
-    {
-        HDC hdcSource = GetDC(NULL);
-        HDC hdcMemory = CreateCompatibleDC(hdcSource);
-
-        int capX = GetDeviceCaps(hdcSource, HORZRES);
-        int capY = GetDeviceCaps(hdcSource, VERTRES);
-
-        hBitmap2 = CreateCompatibleBitmap(hdcSource, w, h);
-        HBITMAP hBitmapOld2 = (HBITMAP)SelectObject(hdcMemory, hBitmap2);
-
-        BitBlt(hdcMemory, 0, 0, w, h, hdcSource, x, y, SRCCOPY);
-
-        for (int w = 0; w < WIDTH; ++w)
-            for (int h = 0; h < HEIGHT; ++h)
-            {
-                arr2[w][h] = GetPixel(hdcMemory, w, h);
-            }
-
-        hBitmap2 = (HBITMAP)SelectObject(hdcMemory, hBitmapOld2);
-
-        DeleteDC(hdcSource);
-        DeleteDC(hdcMemory);
-    }
-
-    {
-        HDC hdcSource = GetDC(NULL);
-        HDC hdcMemory = CreateCompatibleDC(hdcSource);
-
-        int capX = GetDeviceCaps(hdcSource, HORZRES);
-        int capY = GetDeviceCaps(hdcSource, VERTRES);
-
-        hBitmapRes = CreateCompatibleBitmap(hdcSource, w, h);
-        HBITMAP hBitmapOld3 = (HBITMAP)SelectObject(hdcMemory, hBitmapRes);
-
-        BitBlt(hdcMemory, 0, 0, w, h, hdcSource, x, y, SRCCOPY);
-
-        for (int w = 0; w < WIDTH; ++w)
-            for (int h = 0; h < HEIGHT; ++h)
-            {
-                if (arr1[w][h] != arr2[w][h])
-                    SetPixel(hdcMemory, w, h, cGREEN);
-            }
-
-        hBitmapRes = (HBITMAP)SelectObject(hdcMemory, hBitmapOld3);
-
-        DeleteDC(hdcSource);
-        DeleteDC(hdcMemory);
-
-    }
+    HBITMAP hBitmap2 = getScreenCapture(x, y, w, h, functor2);
+    HBITMAP hBitmapRes = getScreenCapture(x, y, w, h, functorMakePixelGreen, true);
 
     if (saveBitmap(fname1, hBitmap1, NULL) 
         && saveBitmap(fname2, hBitmap2, NULL)
@@ -206,6 +178,7 @@ bool saveBitmap(LPCSTR filename, HBITMAP bmp, HPALETTE pal)
 
 int main(int argc, char* argv[]) {
     USES_CONVERSION;
+
     int width = 0, height = 0;
     GetDesktopResolution(width, height);
 
