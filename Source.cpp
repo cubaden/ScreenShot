@@ -21,13 +21,14 @@
 * 
 */
 #include <windows.h>
-#include <vector>
-#include <string>
-#include <functional>
 #include <atlbase.h>
 #include <ole2.h>
 #include <olectl.h>
 #include "wtypes.h"
+
+#include <vector>
+#include <string>
+#include <functional>
 
 using namespace std;
 
@@ -107,7 +108,7 @@ bool functorMakePixelGreen(int w, int h, COLORREF c)
 };
 
 // capturing rect (x,y,w,h) and writing first, second and result bmp
-bool screenCapturePart(int x, int y, int w, int h, LPCSTR fname1, LPCSTR fname2, LPCSTR fnameResult) 
+bool screenCapture(int x, int y, int w, int h, LPCSTR fname1, LPCSTR fname2, LPCSTR fnameResult) 
 {
     HBITMAP hBitmap1 = getHBitmapScreenCapture(x, y, w, h, functor1);
     Sleep(1000);
@@ -187,16 +188,12 @@ int main(int argc, char* argv[])
 {
     USES_CONVERSION;
 
-    int width = 0, height = 0;
-    GetDesktopResolution(width, height);
-
-    WIDTH = width;
-    HEIGHT = height;
+    GetDesktopResolution(WIDTH, HEIGHT);
 
     arrFirstBmpColors.resize(WIDTH, vector<COLORREF>(HEIGHT));
     arrSecondBmpColors.resize(WIDTH, vector<COLORREF>(HEIGHT));
 
-    screenCapturePart(0, 0, WIDTH, HEIGHT, name1.c_str(), name2.c_str(), nameResult.c_str());
+    screenCapture(0, 0, WIDTH, HEIGHT, name1.c_str(), name2.c_str(), nameResult.c_str());
 
     return 0;
 }
