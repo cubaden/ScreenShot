@@ -11,6 +11,9 @@
 * Pixels that are NOT the same - make them green, and write the new bmp.
 * 
 * 
+*  
+* TIMEOUT_BETWEEN_SCREENSHOTS - in milliseconds - sleep between screenshots
+* 
 * Output:
 * 
 * Outputting to a current directory
@@ -32,14 +35,16 @@
 
 using namespace std;
 
-const std::string name1("firstScreenShot.bmp");
-const std::string name2("secondScreenShot.bmp");
-const std::string nameResult("resultScreenShot.bmp");
+const std::string name1 {"firstScreenShot.bmp"};
+const std::string name2 {"secondScreenShot.bmp"};
+const std::string nameResult {"resultScreenShot.bmp"};
 
-int WIDTH = 0;
-int HEIGHT = 0;
+int WIDTH {0};
+int HEIGHT {0};
 
-COLORREF GREEN_COLORREF = 0x00ff00;
+const int TIMEOUT_BETWEEN_SCREENSHOTS = 1000;
+
+constexpr COLORREF GREEN_COLORREF {0x00ff00};
 
 // Get the horizontal and vertical screen sizes in pixel
 void GetDesktopResolution(int& horizontal, int& vertical)
@@ -111,7 +116,7 @@ bool functorMakePixelGreen(int w, int h, COLORREF c)
 bool screenCaptureComparingSaving(int x, int y, int w, int h, LPCSTR fname1, LPCSTR fname2, LPCSTR fnameResult) 
 {
     HBITMAP hBitmap1 = getHBitmapScreenCapture(x, y, w, h, functor1);
-    Sleep(1000);
+    Sleep(TIMEOUT_BETWEEN_SCREENSHOTS);
     HBITMAP hBitmap2 = getHBitmapScreenCapture(x, y, w, h, functor2);
     HBITMAP hBitmapRes = getHBitmapScreenCapture(x, y, w, h, functorMakePixelGreen, true);
 
